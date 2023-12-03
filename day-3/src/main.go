@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 	"unicode"
@@ -46,16 +48,16 @@ func build2DArrayFromLines(s string) [][]rune {
 	return twoD
 }
 
-func isAreaAdjacentToSymbol(twoDArr [][]rune, row int, startCol int, endCol int) bool {
+func buildCoordsToCheckForSpan(row int, startCol int, endCol int) [][]int {
 	coordsToCheck := [][]int{
 		{row - 1, startCol - 1},
 		{row - 1, startCol},
-		{row, startCol - 1},
-		{row + 1, startCol - 1},
-		{row + 1, startCol},
 		{row - 1, endCol + 1},
 		{row - 1, endCol},
+		{row, startCol - 1},
 		{row, endCol + 1},
+		{row + 1, startCol},
+		{row + 1, startCol - 1},
 		{row + 1, endCol + 1},
 		{row + 1, endCol},
 	}
@@ -64,6 +66,27 @@ func isAreaAdjacentToSymbol(twoDArr [][]rune, row int, startCol int, endCol int)
 		coordsToCheck = append(coordsToCheck, []int{row - 1, j})
 		coordsToCheck = append(coordsToCheck, []int{row + 1, j})
 	}
+
+	return coordsToCheck
+}
+
+func buildCoordsToCheckForCell(row int, col int) [][]int {
+	coordsToCheck := [][]int{
+		{row - 1, col - 1},
+		{row - 1, col},
+		{row - 1, col + 1},
+		{row, col - 1},
+		{row, col + 1},
+		{row + 1, col - 1},
+		{row + 1, col},
+		{row + 1, col + 1},
+	}
+
+	return coordsToCheck
+}
+
+func isAreaAdjacentToSymbol(twoDArr [][]rune, row int, startCol int, endCol int) bool {
+	coordsToCheck := buildCoordsToCheckForSpan(row, startCol, endCol)
 
 	for _, coords := range coordsToCheck {
 		x := coords[0]
@@ -75,6 +98,49 @@ func isAreaAdjacentToSymbol(twoDArr [][]rune, row int, startCol int, endCol int)
 	}
 
 	return false
+}
+
+func findFullNumber(twoDArr [][]rune, row int, col int) []rune {
+	number := []rune{}
+
+	backWardCol := col
+
+	for backWardCol >= 0 && unicode.IsDigit(twoDArr[row][backWardCol]) {
+		number = append([]rune{twoDArr[row][backWardCol]}, number...)
+		backWardCol--
+	}
+
+	forwardCol := col + 1
+
+	for forwardCol < len(twoDArr[row]) && unicode.IsDigit(twoDArr[row][forwardCol]) {
+		number = append(number, twoDArr[row][forwardCol])
+		forwardCol++
+	}
+
+	return number
+}
+
+func getAdjacentNumbers(twoDArr [][]rune, row int, col int) []int {
+	coordsToCheck := buildCoordsToCheckForCell(row, col)
+	foundNumbers := []int{}
+
+	for _, coords := range coordsToCheck {
+		x := coords[0]
+		y := coords[1]
+		rune := twoDArr[x][y]
+		if unicode.IsDigit(rune) {
+			fullNumber := findFullNumber(twoDArr, x, y)
+			subString := string(fullNumber)
+			partNumber, err := strconv.Atoi(subString)
+			check(err)
+
+			if !slices.Contains(foundNumbers, partNumber) {
+				foundNumbers = append(foundNumbers, partNumber)
+			}
+		}
+	}
+
+	return foundNumbers
 }
 
 func findPartNumbers(twoDArr [][]rune) []int {
@@ -116,7 +182,32 @@ func findPartNumbers(twoDArr [][]rune) []int {
 	return partNumbers
 }
 
-func sumOfPartNumbers(partNumbers []int) int {
+func findGears(twoDArr [][]rune) []int {
+	gears := []int{}
+
+	m := len(twoDArr)
+	n := len(twoDArr[0])
+
+	for i := 0; i < m; i++ {
+		for j := 0; j < n; j++ {
+
+			char := twoDArr[i][j]
+			isStar := char == '*'
+
+			if isStar {
+				adjacentNumbers := getAdjacentNumbers(twoDArr, i, j)
+				if len(adjacentNumbers) == 2 {
+					fmt.Println("found gear at", i, j)
+					gears = append(gears, adjacentNumbers[0]*adjacentNumbers[1])
+				}
+			}
+		}
+	}
+
+	return gears
+}
+
+func sumOfArray(partNumbers []int) int {
 	sum := 0
 	for _, partNumber := range partNumbers {
 		sum += partNumber
@@ -134,7 +225,10 @@ func main() {
 	engineSchema = addPaddingTo2DArray(engineSchema, '.')
 
 	partNumbers := findPartNumbers(engineSchema)
-	sum := sumOfPartNumbers(partNumbers)
+	sumOfPartNumbers := sumOfArray(partNumbers)
+	println(sumOfPartNumbers)
 
-	println(sum)
+	gears := findGears(engineSchema)
+	sumOfGears := sumOfArray(gears)
+	println(sumOfGears)
 }
