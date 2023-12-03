@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"slices"
 	"strconv"
@@ -92,7 +91,7 @@ func isAreaAdjacentToSymbol(twoDArr [][]rune, row int, startCol int, endCol int)
 		x := coords[0]
 		y := coords[1]
 		rune := twoDArr[x][y]
-		if rune != '.' {
+		if rune != '.' && !unicode.IsDigit(rune) {
 			return true
 		}
 	}
@@ -197,7 +196,6 @@ func findGears(twoDArr [][]rune) []int {
 			if isStar {
 				adjacentNumbers := getAdjacentNumbers(twoDArr, i, j)
 				if len(adjacentNumbers) == 2 {
-					fmt.Println("found gear at", i, j)
 					gears = append(gears, adjacentNumbers[0]*adjacentNumbers[1])
 				}
 			}
