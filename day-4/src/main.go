@@ -4,12 +4,9 @@ import (
 	"fmt"
 	"math"
 	"os"
-	"regexp"
 	"slices"
 	"strings"
 )
-
-var numberRegex = regexp.MustCompile("[0-9]")
 
 func check(e error) {
 	if e != nil {
@@ -17,6 +14,7 @@ func check(e error) {
 	}
 }
 
+// common
 func matchesForLine(line string) int {
 	line = strings.Join(strings.Fields(line), " ")
 	gameInfo := strings.Split(line, " | ")
@@ -33,6 +31,7 @@ func matchesForLine(line string) int {
 	return matches
 }
 
+// part 1
 func calculateGamePoints(gameLines []string) int {
 	s := 0
 	for _, line := range gameLines {
@@ -50,6 +49,7 @@ func calculateGamePoints(gameLines []string) int {
 	return s
 }
 
+// part 2
 type lineInfo struct {
 	matches int
 	copies  int
@@ -79,7 +79,7 @@ func calculateTotalScratchCards(gameLines []string) int {
 			for j := i + 1; j <= matches+i; j++ {
 				// add a copy
 				if val, ok := mapOfRepeatingLines[j]; ok {
-					// create copes
+					// create copies
 					newCopies := val.copies + 1
 					mapOfRepeatingLines[j] = lineInfo{matches: val.matches, copies: newCopies}
 				}
