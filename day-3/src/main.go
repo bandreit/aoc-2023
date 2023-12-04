@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"slices"
 	"strconv"
@@ -196,6 +197,7 @@ func findGears(twoDArr [][]rune) []int {
 			if isStar {
 				adjacentNumbers := getAdjacentNumbers(twoDArr, i, j)
 				if len(adjacentNumbers) == 2 {
+					fmt.Println(adjacentNumbers[0], adjacentNumbers[1])
 					gears = append(gears, adjacentNumbers[0]*adjacentNumbers[1])
 				}
 			}
@@ -227,6 +229,7 @@ func main() {
 	println(sumOfPartNumbers)
 
 	gears := findGears(engineSchema)
+	fmt.Println(gears)
 	sumOfGears := sumOfArray(gears)
 	println(sumOfGears)
 }
