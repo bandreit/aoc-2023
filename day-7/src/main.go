@@ -14,6 +14,42 @@ func check(e error) {
 	}
 }
 
+func cardToValue(card string) int {
+	switch card {
+	case "A":
+		return 14
+	case "K":
+		return 13
+	case "Q":
+		return 12
+	case "J":
+		return 11
+	case "T":
+		return 10
+	default:
+		value, err := strconv.Atoi(card)
+		check(err)
+		return value
+	}
+}
+
+var mapOfPowers = map[string]int{
+	"5":     1,
+	"14":    2,
+	"23":    3,
+	"113":   4,
+	"122":   5,
+	"1112":  6,
+	"11111": 7,
+}
+
+func main() {
+	dat, err := os.ReadFile("../input.txt")
+	check(err)
+
+	fmt.Println(part1(dat))
+}
+
 func part1(dat []byte) int {
 	lines := strings.Split(string(dat), "\n")
 	mapOfCardsByPower := make(map[int][]string)
@@ -102,40 +138,4 @@ func part1(dat []byte) int {
 	}
 
 	return totalWinningHands
-}
-
-var mapOfPowers = map[string]int{
-	"5":     1,
-	"14":    2,
-	"23":    3,
-	"113":   4,
-	"122":   5,
-	"1112":  6,
-	"11111": 7,
-}
-
-func main() {
-	dat, err := os.ReadFile("../input.txt")
-	check(err)
-
-	fmt.Println(part1(dat))
-}
-
-func cardToValue(card string) int {
-	switch card {
-	case "A":
-		return 14
-	case "K":
-		return 13
-	case "Q":
-		return 12
-	case "J":
-		return 11
-	case "T":
-		return 10
-	default:
-		value, err := strconv.Atoi(card)
-		check(err)
-		return value
-	}
 }
