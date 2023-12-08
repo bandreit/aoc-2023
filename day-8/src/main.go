@@ -23,8 +23,13 @@ func main() {
 	lastValue := "ZZZ"
 
 	mapOfNodes := buildMap(rawNodes)
-	// result := traverseMap(&mapOfNodes, firstValue, lastValue, strings.Split(instructions, ""), 0)
 
+	result1 := part1(instructions, mapOfNodes, firstValue, lastValue)
+	result2 := part2(instructions, mapOfNodes)
+	fmt.Println(result1, result2)
+}
+
+func part1(instructions string, mapOfNodes map[string]Node, firstValue, lastValue string) int {
 	s := 0
 	i := 0
 	nrOfInstructions := len(instructions)
@@ -44,37 +49,49 @@ func main() {
 		}
 	}
 
-	fmt.Println(s)
+	return s
 }
 
-// func traverseMap(mapOfNodes *map[string]Node, prevValue string, lastValue string, instructions []string, i int) int {
-// 	count := 0
+func part2(instructions string, mapOfNodes map[string]Node) []int {
+	nrOfInstructions := len(instructions)
+	currentValues := []string{}
+	results := []int{}
 
-// 	// if prevValue == "PXP" || prevValue == "XBK" {
-// 	// 	fmt.Printf("prevValue: %s, lastValue: %s, instructions: %s, i: %d\n", prevValue, lastValue, instructions, i)
-// 	// }
-// 	if prevValue == lastValue || prevValue == "" {
-// 		return count
-// 	}
+	for k := range mapOfNodes {
+		if k[len(k)-1:] == "A" {
+			currentValues = append(currentValues, k)
+		}
+	}
 
-// 	if i == len(instructions) {
-// 		i = 0
-// 	}
+	endsInZ := false
 
-// 	instruction := string(instructions[i])
-// 	var value string
+	for _, currentValue := range currentValues {
+		s := 0
+		i := 0
+		for !endsInZ {
+			if i == nrOfInstructions {
+				i = 0
+			}
+			instruction := string(instructions[i])
+			i++
+			s++
 
-// 	if instruction == "L" {
-// 		value = mapOfNodes[prevValue].left
-// 	} else if instruction == "R" {
-// 		value = mapOfNodes[prevValue].right
-// 	}
+			if instruction == "L" {
+				currentValue = mapOfNodes[currentValue].left
+			} else if instruction == "R" {
+				currentValue = mapOfNodes[currentValue].right
+			}
 
-// 	count++
-// 	count += traverseMap(mapOfNodes, value, lastValue, instructions, i+1)
+			if currentValue[len(currentValue)-1:] == "Z" {
+				endsInZ = true
+				results = append(results, s)
+			}
+		}
+		endsInZ = false
+	}
 
-// 	return count
-// }
+	return results
+}
 
 func buildMap(nodes []string) map[string]Node {
 	mapOfNodes := make(map[string]Node)
@@ -98,15 +115,6 @@ func extractParentAndChild(node string) (string, string, string) {
 
 	return parent, children[0], children[1]
 }
-
-// func preOrder(node *Node) {
-// 	if node == nil {
-// 		return
-// 	}
-// 	fmt.Println(node.value)
-// 	preOrder(node.left)
-// 	preOrder(node.right)
-// }
 
 func check(e error) {
 	if e != nil {
