@@ -28,30 +28,45 @@ func main() {
 	}
 
 	fmt.Println(part1(lines))
+	fmt.Println(part2(lines))
 }
 
 func part1(lines [][]int) int {
 	sumOfNextValues := 0
 	for _, historyRecords := range lines {
-		nextValue := calculateNext(historyRecords)
+		nextValue := calculateNext(historyRecords, 1)
 		sumOfNextValues += nextValue
 	}
 
 	return sumOfNextValues
 }
 
-func calculateNext(historyRecords []int) int {
-	lastValuesForSequences := getLastValuesForEachSequence(historyRecords)
+func part2(lines [][]int) int {
+	sumOfNextValues := 0
+	for _, historyRecords := range lines {
+		nextValue := calculateNext(historyRecords, -1)
+		sumOfNextValues += nextValue
+	}
+
+	return sumOfNextValues
+}
+
+func calculateNext(historyRecords []int, nTh int) int {
+	lastValuesForSequences := getNthValuesForEachSequence(historyRecords, nTh)
 
 	nextValue := 0
 	for i := len(lastValuesForSequences) - 1; i >= 0; i-- {
-		nextValue += lastValuesForSequences[i]
+		if nTh == -1 {
+			nextValue = lastValuesForSequences[i] - nextValue
+		} else {
+			nextValue += lastValuesForSequences[i]
+		}
 	}
 
 	return nextValue
 }
 
-func getLastValuesForEachSequence(historyRecords []int) []int {
+func getNthValuesForEachSequence(historyRecords []int, nTh int) []int {
 	lastValues := make([]int, 0)
 	allRecordsAreZero := false
 
@@ -63,7 +78,11 @@ func getLastValuesForEachSequence(historyRecords []int) []int {
 			newHistoryRecords[i] = historyRecords[i+1] - historyRecords[i]
 		}
 
-		lastValues = append(lastValues, historyRecords[len(newHistoryRecords)])
+		index := len(newHistoryRecords)
+		if nTh == -1 {
+			index = 0
+		}
+		lastValues = append(lastValues, historyRecords[index])
 		allRecordsAreZero = checkAllRecordsAreZero(newHistoryRecords)
 		historyRecords = newHistoryRecords
 	}
