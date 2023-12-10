@@ -12,7 +12,7 @@ type Point struct {
 	j int
 }
 
-var pipeConnectsFrom = map[rune][]Point{
+var possiblePipeConnections = map[rune][]Point{
 	'|': {{i: -1, j: 0}, {i: 1, j: 0}},  // north, south
 	'-': {{i: 0, j: -1}, {i: 0, j: 1}},  // west, east
 	'L': {{i: -1, j: 0}, {i: 0, j: 1}},  // north, east
@@ -44,7 +44,7 @@ func main() {
 		checkingAt := Point{i: i + directionToCheck.i, j: j + directionToCheck.j}
 		pipeToCheck := twoDArr[checkingAt.i][checkingAt.j]
 
-		acceptsConnectionsFrom := pipeConnectsFrom[pipeToCheck]
+		acceptsConnectionsFrom := possiblePipeConnections[pipeToCheck]
 		if slices.ContainsFunc(acceptsConnectionsFrom, func(p Point) bool {
 			return p.i == i-checkingAt.i && p.j == j-checkingAt.j
 		}) {
@@ -56,49 +56,33 @@ func main() {
 		fmt.Println(string(twoDArr[initialConnection.i][initialConnection.j]))
 	}
 
-	comingFrom := Point{i, j}
+	steps := 0
+
 	reachedEnd := false
-	// nextConnectionPipe := initial2Connections[1]
+	comingFrom := Point{i, j}
+	goingTo := initial2Connections[0]
 
-	previousComingFrom := Point{-1, -1}
 	for !reachedEnd {
-		// move basedOnConnectionPipe
-		for _, directionToCheck := range directionsToCheck {
-			// in each direction, check if there's a pipe
-			checkingAt := Point{comingFrom.i + directionToCheck.i, comingFrom.j + directionToCheck.j}
-			pipeToCheck := twoDArr[checkingAt.i][checkingAt.j]
+		oldComingFrom := comingFrom
+		comingFrom = goingTo
 
-			if pipeToCheck == 'S' {
+		possibleDirectionsToGo := possiblePipeConnections[twoDArr[comingFrom.i][comingFrom.j]]
+		for _, directionToCheck := range possibleDirectionsToGo {
+			checkingAt := Point{comingFrom.i + directionToCheck.i, comingFrom.j + directionToCheck.j}
+			if (checkingAt.i == oldComingFrom.i) && (checkingAt.j == oldComingFrom.j) {
+				continue
+			}
+
+			goingTo = checkingAt
+			steps++
+			fmt.Println("going to ", goingTo, " which is ", string(twoDArr[goingTo.i][goingTo.j]))
+			if string(twoDArr[goingTo.i][goingTo.j]) == "S" {
 				reachedEnd = true
 			}
-
-			// if there's a pipe, check if it connects to the pipe we came from
-			if doesItConnect(pipeToCheck, comingFrom, checkingAt) {
-				// if it does, move to it
-				if (previousComingFrom.i == checkingAt.i) && (previousComingFrom.j == checkingAt.j) {
-					continue
-				}
-				fmt.Println("coming from ", comingFrom, " checking at ", checkingAt, " previous checking at ", previousComingFrom)
-				previousComingFrom = comingFrom
-				comingFrom = checkingAt
-
-				break
-			}
-		}
-	}
-}
-
-func doesItConnect(pipeToCheck rune, comingFrom Point, checkingAt Point) bool {
-	acceptsConnectionsFrom := pipeConnectsFrom[pipeToCheck]
-	for _, diffToAccept := range acceptsConnectionsFrom {
-		diffMatches := (comingFrom.i-diffToAccept.i == checkingAt.i) && (comingFrom.j-diffToAccept.j == checkingAt.j)
-
-		if diffMatches {
-			return true
 		}
 	}
 
-	return false
+	fmt.Println(steps/2 + 1)
 }
 
 func build2DArrayFromLines(s string) ([][]rune, int, int) {
