@@ -17,7 +17,7 @@ func main() {
 	dat, err := os.ReadFile("../input.txt")
 	check(err)
 
-	twoDArr, coords := build2DArrayFromLines(string(dat))
+	twoDArr, coords, emptyRowIndexes, emptyColIndexes := build2DArrayFromLines(string(dat))
 
 	for _, line := range twoDArr {
 		fmt.Println(string(line))
@@ -30,10 +30,38 @@ func main() {
 
 	for _, combo := range combos {
 		distance := getManhattanDistance(combo[0], combo[1])
-		s += distance
+		nrOfIntersects := timesItIntersectsEmptyRows(emptyRowIndexes, emptyColIndexes, combo[0], combo[1])
+		s += distance + nrOfIntersects
+		fmt.Println(combo, "intersects ", nrOfIntersects, " times with distance of ", distance)
 	}
 
 	fmt.Println(s)
+}
+
+func timesItIntersectsEmptyRows(emptyRowIndexes []int, emptyColIndexes []int, point1, point2 Point) int {
+	times := 0
+
+	for _, emptyColIndexes := range emptyColIndexes {
+		if point1.j < emptyColIndexes && point2.j > emptyColIndexes {
+			times++
+		}
+
+		if point1.j > emptyColIndexes && point2.j < emptyColIndexes {
+			times++
+		}
+	}
+
+	for _, emptyRowIndexes := range emptyRowIndexes {
+		if point1.i < emptyRowIndexes && point2.i > emptyRowIndexes {
+			times++
+		}
+
+		if point1.i > emptyRowIndexes && point2.i < emptyRowIndexes {
+			times++
+		}
+	}
+
+	return times
 }
 
 func getManhattanDistance(p1 Point, p2 Point) int {
@@ -50,21 +78,18 @@ func comb(sofar []Point, rest []Point, n int, combos *[][]Point) {
 	}
 }
 
-func build2DArrayFromLines(s string) ([][]rune, []Point) {
+func build2DArrayFromLines(s string) ([][]rune, []Point, []int, []int) {
 	lines := strings.Split(s, "\n")
 	twoD := make([][]rune, 0)
 	coords := make([]Point, 0)
+	rowIndexesToRepeat := make([]int, 0)
+	colIndexesToRepeat := make([]int, 0)
 
 	for i := 0; i < len(lines); i++ {
 		row := []rune(lines[i])
 		twoD = append(twoD, row)
-
-		if !slices.Contains(row, '#') {
-			twoD = append(twoD, row)
-		}
 	}
 
-	colIndexesToRepeat := make([]int, 0)
 	for j := 0; j < len(twoD[0]); j++ {
 		col := make([]rune, 0)
 		for i := 0; i < len(twoD); i++ {
@@ -76,10 +101,10 @@ func build2DArrayFromLines(s string) ([][]rune, []Point) {
 		}
 	}
 
-	fmt.Println(colIndexesToRepeat)
-	for k, colIndex := range colIndexesToRepeat {
-		for i := 0; i < len(twoD); i++ {
-			twoD[i] = insert(twoD[i], colIndex+1+k, '.')
+	for i := 0; i < len(lines); i++ {
+		row := []rune(lines[i])
+		if !slices.Contains(row, '#') {
+			rowIndexesToRepeat = append(rowIndexesToRepeat, i)
 		}
 	}
 
@@ -91,7 +116,7 @@ func build2DArrayFromLines(s string) ([][]rune, []Point) {
 		}
 	}
 
-	return twoD, coords
+	return twoD, coords, rowIndexesToRepeat, colIndexesToRepeat
 }
 
 func insert(a []rune, index int, value rune) []rune {
