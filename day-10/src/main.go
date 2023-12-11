@@ -110,6 +110,7 @@ func part1and2(dat []byte) {
 
 	for i := 0; i < len(twoDArr); i++ {
 		for j := 0; j < len(twoDArr[i]); j++ {
+			// if the point is not a wall
 			if twoDArr[i][j] != '#' {
 				isPointInPath := isPointInPath(i, j, mazePath)
 
@@ -119,13 +120,12 @@ func part1and2(dat []byte) {
 			}
 		}
 	}
-	//.##############7
+
 	fmt.Println(trappedDots)
 }
 
-//Determine if the point is on the path, corner, or boundary of the maze
+// Determine if the point is on the path, corner, or boundary of the maze
 // True if the point is in the path or is a corner or on the boundary"""
-
 func isPointInPath(x, y int, mazePath []Point) bool {
 	num := len(mazePath)
 	j := num - 1
