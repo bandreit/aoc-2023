@@ -32,6 +32,10 @@ func main() {
 	dat, err := os.ReadFile("../input.txt")
 	check(err)
 
+	part1and2(dat)
+}
+
+func part1and2(dat []byte) {
 	twoDArr, sI, sJ := build2DArrayFromLines(string(dat))
 	twoDArr = addPaddingTo2DArray(twoDArr, '.')
 
@@ -56,6 +60,8 @@ func main() {
 		fmt.Println(string(twoDArr[initialConnection.i][initialConnection.j]))
 	}
 
+	mazePath := make([]Point, 0)
+
 	steps := 0
 
 	reachedEnd := false
@@ -73,16 +79,75 @@ func main() {
 				continue
 			}
 
+			mazePath = append(mazePath, comingFrom)
 			goingTo = checkingAt
 			steps++
-			fmt.Println("going to ", goingTo, " which is ", string(twoDArr[goingTo.i][goingTo.j]))
 			if string(twoDArr[goingTo.i][goingTo.j]) == "S" {
 				reachedEnd = true
 			}
 		}
 	}
 
+	for _, line := range twoDArr {
+		fmt.Println(string(line))
+	}
+
 	fmt.Println(steps/2 + 1)
+
+	twoDArr[i][j] = '#'
+
+	for i, line := range twoDArr {
+		for j := range line {
+			if slices.Contains(mazePath, Point{i: i, j: j}) {
+				twoDArr[i][j] = '#'
+			}
+		}
+	}
+
+	trappedDots := 0
+
+	fmt.Println()
+
+	for i := 0; i < len(twoDArr); i++ {
+		for j := 0; j < len(twoDArr[i]); j++ {
+			if twoDArr[i][j] != '#' {
+				isPointInPath := isPointInPath(i, j, mazePath)
+
+				if isPointInPath {
+					trappedDots++
+				}
+			}
+		}
+	}
+	//.##############7
+	fmt.Println(trappedDots)
+}
+
+//Determine if the point is on the path, corner, or boundary of the maze
+// True if the point is in the path or is a corner or on the boundary"""
+
+func isPointInPath(x, y int, mazePath []Point) bool {
+	num := len(mazePath)
+	j := num - 1
+	c := false
+	for i := 0; i < num; i++ {
+		if x == mazePath[i].i && y == mazePath[i].j {
+			// point is a corner
+			return true
+		}
+		if (mazePath[i].j > y) != (mazePath[j].j > y) {
+			slope := (x-mazePath[i].i)*(mazePath[j].j-mazePath[i].j) - (mazePath[j].i-mazePath[i].i)*(y-mazePath[i].j)
+			if slope == 0 {
+				// point is on boundary
+				return true
+			}
+			if (slope < 0) != (mazePath[j].j < mazePath[i].j) {
+				c = !c
+			}
+		}
+		j = i
+	}
+	return c
 }
 
 func build2DArrayFromLines(s string) ([][]rune, int, int) {
