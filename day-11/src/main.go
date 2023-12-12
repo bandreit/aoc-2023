@@ -17,11 +17,12 @@ func main() {
 	dat, err := os.ReadFile("../input.txt")
 	check(err)
 
-	twoDArr, coords, emptyRowIndexes, emptyColIndexes := build2DArrayFromLines(string(dat))
+	fmt.Println(part1(string(dat), 2))
+	fmt.Println(part1(string(dat), 1000000))
+}
 
-	for _, line := range twoDArr {
-		fmt.Println(string(line))
-	}
+func part1(dat string, numberOfRepeats int) int {
+	_, coords, emptyRowIndexes, emptyColIndexes := build2DArrayFromLines(dat)
 
 	combos := make([][]Point, 0)
 	comb([]Point{}, coords, 2, &combos)
@@ -31,11 +32,10 @@ func main() {
 	for _, combo := range combos {
 		distance := getManhattanDistance(combo[0], combo[1])
 		nrOfIntersects := timesItIntersectsEmptyRows(emptyRowIndexes, emptyColIndexes, combo[0], combo[1])
-		s += distance + nrOfIntersects
-		fmt.Println(combo, "intersects ", nrOfIntersects, " times with distance of ", distance)
+		s += nrOfIntersects*(numberOfRepeats-1) + distance
 	}
 
-	fmt.Println(s)
+	return s
 }
 
 func timesItIntersectsEmptyRows(emptyRowIndexes []int, emptyColIndexes []int, point1, point2 Point) int {
