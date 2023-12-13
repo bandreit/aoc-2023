@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"slices"
 	"strings"
 )
 
@@ -14,21 +13,21 @@ func check(e error) {
 }
 
 func main() {
-	// LevenshteinDistance("acc", "abc")
-
 	dat, err := os.ReadFile("../input.txt")
 	check(err)
 	patterns := strings.Split(string(dat), "\n\n")
 
 	s := 0
-	for _, patternRaw := range patterns {
+	for i, patternRaw := range patterns {
 		pattern := strings.Split(patternRaw, "\n")
 
+		fmt.Println(i)
 		mirrorRow := getReflectionRowIndex(pattern)
 		mirrorColumn := getReflectionColumnIndex(pattern)
 
 		if mirrorRow != -1 {
 			s += (mirrorRow + 1) * 100
+			continue
 		}
 
 		if mirrorColumn != -1 {
@@ -60,40 +59,55 @@ func getAllColumns(pattern []string) []string {
 	return allColumns
 }
 
-func getDuplicatedSliceIndexes(allSlices []string) []int {
-	duplicatedSliceIndexes := make([]int, 0)
-
-	for i := 0; i < len(allSlices)-1; i++ {
-		if allSlices[i] == allSlices[i+1] {
-			if !slices.Contains(duplicatedSliceIndexes, i) {
-				duplicatedSliceIndexes = append(duplicatedSliceIndexes, i)
-			}
-		}
-	}
-
-	return duplicatedSliceIndexes
+func getReflectionRowIndex(pattern []string) int {
+	return doWork(pattern, "row")
 }
 
-func getReflectionRowIndex(pattern []string) int {
-	duplicatedRowsIndexes := getDuplicatedSliceIndexes(pattern)
+func getReflectionColumnIndex(pattern []string) int {
+	allColumns := getAllColumns(pattern)
+	return doWork(allColumns, "columns")
+}
 
-	for _, row := range duplicatedRowsIndexes {
-		up := row - 1
-		down := row + 2
-
-		if row == 0 || row == len(pattern)-2 {
-			return row
-		}
-
-		reachedEnd := up < 0 || down >= len(pattern)
-		if reachedEnd {
+func doWork(pattern []string, typeOfArr string) int {
+	for row := range pattern {
+		if row == len(pattern)-1 {
 			continue
 		}
 
-		rowsAreEqual := pattern[up] == pattern[down]
+		wasDiffUsed := false
+		isDiff1 := getDiff(pattern[row], pattern[row+1]) == 1
+		areTheyEqual := pattern[row] == pattern[row+1]
 
-		for !reachedEnd && rowsAreEqual {
-			rowsAreEqual = pattern[up] == pattern[down]
+		if !(isDiff1 || areTheyEqual) {
+			continue
+		}
+
+		if isDiff1 {
+			wasDiffUsed = true
+		}
+
+		up := row - 1
+		down := row + 2
+
+		reachedEnd := up < 0 || down >= len(pattern)
+		if reachedEnd {
+			fmt.Println("found row", row)
+			return row
+		}
+
+		isDiff1 = getDiff(pattern[up], pattern[down]) == 1
+		if isDiff1 {
+			wasDiffUsed = true
+		}
+
+		rowsAreEqual := pattern[up] == pattern[down] || isDiff1
+
+		for !reachedEnd && rowsAreEqual && !wasDiffUsed {
+			isDiff1 = getDiff(pattern[up], pattern[down]) == 1
+			rowsAreEqual = pattern[up] == pattern[down] || isDiff1
+			if isDiff1 {
+				wasDiffUsed = true
+			}
 
 			up--
 			down++
@@ -101,6 +115,7 @@ func getReflectionRowIndex(pattern []string) int {
 		}
 
 		if rowsAreEqual {
+			fmt.Println("found ", typeOfArr, row)
 			return row
 		}
 	}
@@ -108,89 +123,66 @@ func getReflectionRowIndex(pattern []string) int {
 	return -1
 }
 
-func getReflectionColumnIndex(pattern []string) int {
-	allColumns := getAllColumns(pattern)
-	duplicatedColumnIndexes := getDuplicatedSliceIndexes(allColumns)
+// func getReflectionColumnIndex(pattern []string) int {
+// 	allColumns := getAllColumns(pattern)
 
-	for _, column := range duplicatedColumnIndexes {
-		left := column - 1
-		right := column + 2
+// 	for column := range allColumns {
+// 		if column == len(allColumns)-1 {
+// 			continue
+// 		}
 
-		if column == 0 || column == len(pattern[0])-2 {
-			return column
-		}
+// 		wasDiffUsed := false
+// 		isDiff1 := getDiff(allColumns[column], allColumns[column+1]) == 1
+// 		areTheyEqual := allColumns[column] == allColumns[column+1]
 
-		reachedEnd := left < 0 || right >= len(allColumns)
-		if reachedEnd {
-			continue
-		}
+// 		if !(isDiff1 || areTheyEqual) {
+// 			continue
+// 		}
 
-		columnsAreEqual := allColumns[left] == allColumns[right]
+// 		if isDiff1 {
+// 			wasDiffUsed = true
+// 		}
 
-		for !reachedEnd && columnsAreEqual {
-			columnsAreEqual = allColumns[left] == allColumns[right]
+// 		left := column - 1
+// 		right := column + 2
 
-			left--
-			right++
-			reachedEnd = left < 0 || right >= len(allColumns)
-		}
+// 		reachedEnd := left < 0 || right >= len(allColumns)
+// 		if reachedEnd {
+// 			fmt.Println("found column", column)
+// 			return column
+// 		}
 
-		if columnsAreEqual {
-			return column
+// 		isDiff1 = getDiff(pattern[left], pattern[right]) == 1
+// 		if isDiff1 {
+// 			wasDiffUsed = true
+// 		}
+
+// 		rowsAreEqual := pattern[up] == pattern[down] || isDiff1
+
+// 		for !reachedEnd && columnsAreEqual {
+// 			columnsAreEqual = getDiff(allColumns[left], allColumns[right]) == 1
+
+// 			left--
+// 			right++
+// 			reachedEnd = left < 0 || right >= len(allColumns)
+// 		}
+
+// 		if columnsAreEqual {
+// 			fmt.Println("found column", column)
+// 			return column
+// 		}
+// 	}
+
+// 	return -1
+// }
+
+func getDiff(left string, right string) int {
+	diffs := 0
+	for i := 0; i < len(left); i++ {
+		if left[i] != right[i] {
+			diffs++
 		}
 	}
 
-	return -1
-}
-
-func LevenshteinDistance(s string, t string) int {
-	// create two work vectors of integer distances
-	v0 := make([]int, len(t)+1)
-	v1 := make([]int, len(t)+1)
-
-	// initialize v0 (the previous row of distances)
-	// this row is A[0][i]: edit distance from an empty s to t;
-	// that distance is the number of characters to append to s to make t.
-	for i := 0; i <= len(t); i++ {
-		v0[i] = i
-	}
-
-	for i := 0; i < len(s); i++ {
-		// calculate v1 (current row distances) from the previous row v0
-
-		// first element of v1 is A[i + 1][0]
-		//   edit distance is delete (i + 1) chars from s to match empty t
-		v1[0] = i + 1
-
-		// use formula to fill in the rest of the row
-		for j := 0; j < len(t); j++ {
-			// calculating costs for A[i + 1][j + 1]
-			deletionCost := v0[j+1] + 1
-			insertionCost := v1[j] + 1
-			substitutionCost := v0[j]
-			if s[i] != t[j] {
-				substitutionCost++
-			}
-
-			v1[j+1] = min(deletionCost, insertionCost, substitutionCost)
-		}
-
-		// copy v1 (current row) to v0 (previous row) for next iteration
-		// since data in v1 is always invalidated, a swap without copy could be more efficient
-		v0, v1 = v1, v0
-	}
-
-	fmt.Println(v0)
-	// after the last swap, the results of v1 are now in v0
-	return v0[len(t)]
-}
-
-func min(a, b, c int) int {
-	if a < b && a < c {
-		return a
-	} else if b < c {
-		return b
-	} else {
-		return c
-	}
+	return diffs
 }
