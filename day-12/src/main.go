@@ -37,26 +37,41 @@ func getAllPermutations(arr []int, length int, L int) [][]rune {
 	return combos
 }
 
+type memoized struct {
+	f     func(head []string, tail ...[]string) [][]string
+	cache map[string][][]string
+}
+
+func memoize(f func(head []string, tail ...[]string) [][]string) *memoized {
+	return &memoized{f: f, cache: make(map[string][][]string)}
+}
+
+func (m *memoized) call(head []string, tail ...[]string) [][]string {
+	key := fmt.Sprintf("%v:%v", head, tail)
+	if v, ok := m.cache[key]; ok {
+		return v
+	}
+	result := m.f(head, tail...)
+	m.cache[key] = result
+	return result
+}
+
 func cartesian(head []string, tail ...[]string) [][]string {
-	if len(tail) > 0 {
-		remainder := cartesian(tail[0], tail[1:]...)
-		result := make([][]string, 0)
-
-		for _, r := range remainder {
-			for _, h := range head {
-				temp := make([]string, len(r)+1)
-				temp[0] = h
-				copy(temp[1:], r)
-				result = append(result, temp)
-			}
+	if len(tail) == 0 {
+		result := make([][]string, len(head))
+		for i, h := range head {
+			result[i] = []string{h}
 		}
-
 		return result
 	}
 
-	result := make([][]string, len(head))
-	for i, h := range head {
-		result[i] = []string{h}
+	remainder := cartesian(tail[0], tail[1:]...)
+	result := make([][]string, 0, len(head)*len(remainder))
+
+	for _, h := range head {
+		for _, r := range remainder {
+			result = append(result, append([]string{h}, r...))
+		}
 	}
 
 	return result
@@ -67,9 +82,6 @@ func main() {
 	check(err)
 
 	lines := strings.Split(string(dat), "\n")
-	// lines := []string{
-	// 	"???.###????.###????.###????.###????.### 1,1,3,1,1,3,1,1,3,1,1,3,1,1,3",
-	// }
 
 	s := 0
 	for i, line := range lines {
@@ -84,10 +96,13 @@ func main() {
 
 func part1(line string) int {
 	data := strings.Split(line, " ")
-	repeatingString := strings.Repeat(data[0]+"?", 5)
-	originalStr := repeatingString[:len(repeatingString)-1]
-	repeatingGroupSizes := strings.Repeat(data[1]+",", 5)
-	originalGroupSizes := repeatingGroupSizes[:len(repeatingGroupSizes)-1]
+	// repeatingString := strings.Repeat(data[0]+"?", 5)
+	// originalStr := repeatingString[:len(repeatingString)-1]
+	// repeatingGroupSizes := strings.Repeat(data[1]+",", 5)
+	// originalGroupSizes := repeatingGroupSizes[:len(repeatingGroupSizes)-1]
+
+	originalStr := data[0]
+	originalGroupSizes := data[1]
 
 	possibleRunes := []int{'#', '.'}
 	length := len(possibleRunes)
@@ -115,10 +130,12 @@ func part1(line string) int {
 	}
 
 	s := 0
-	result := cartesian(head, tail...)
+	result := memoize(cartesian).call(head, tail...)
 	for _, r := range result {
 		for k, index := range originalIndices {
+			// fmt.Println("121 currently at index", k, " from ", len(originalIndices))
 			originalStr = originalStr[:index[0]] + r[k] + originalStr[index[1]:]
+			fmt.Println(originalStr)
 		}
 		newIndices := unknownMarkRegexp.FindAllIndex([]byte(originalStr), -1)
 
