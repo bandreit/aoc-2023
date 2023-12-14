@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 )
 
@@ -18,21 +19,25 @@ func main() {
 	patterns := strings.Split(string(dat), "\n\n")
 
 	s := 0
-	for i, patternRaw := range patterns {
+	for _, patternRaw := range patterns {
 		pattern := strings.Split(patternRaw, "\n")
 
-		fmt.Println(i)
-		mirrorRow := getReflectionRowIndex(pattern)
-		mirrorColumn := getReflectionColumnIndex(pattern)
+		// fmt.Println(i)
 
+		mirrorRow := getReflectionRowIndex(pattern)
 		if mirrorRow != -1 {
 			s += (mirrorRow + 1) * 100
+			fmt.Println("row", mirrorRow)
 			continue
 		}
 
+		mirrorColumn := getReflectionColumnIndex(pattern)
 		if mirrorColumn != -1 {
 			s += mirrorColumn + 1
+			fmt.Println("column", mirrorColumn)
 		}
+
+		fmt.Println()
 	}
 
 	fmt.Println(s)
@@ -60,16 +65,77 @@ func getAllColumns(pattern []string) []string {
 }
 
 func getReflectionRowIndex(pattern []string) int {
-	return doWork(pattern, "row")
+	exclude := doWork1(pattern, "row")
+	return doWork2(pattern, "row", exclude)
+
+	// return doWork1(pattern, "row")
 }
 
 func getReflectionColumnIndex(pattern []string) int {
 	allColumns := getAllColumns(pattern)
-	return doWork(allColumns, "columns")
+	exclude := doWork1(allColumns, "columns")
+	return doWork2(allColumns, "columns", exclude)
+
+	// return doWork1(allColumns, "columns")
 }
 
-func doWork(pattern []string, typeOfArr string) int {
+func getDuplicatedSliceIndexes(allSlices []string) []int {
+	duplicatedSliceIndexes := make([]int, 0)
+
+	for i := 0; i < len(allSlices)-1; i++ {
+		if allSlices[i] == allSlices[i+1] {
+			if !slices.Contains(duplicatedSliceIndexes, i) {
+				duplicatedSliceIndexes = append(duplicatedSliceIndexes, i)
+			}
+		}
+	}
+
+	return duplicatedSliceIndexes
+}
+
+func doWork1(pattern []string, typeOfArr string) int {
+	indexes := getDuplicatedSliceIndexes(pattern)
+
+	for _, row := range indexes {
+		left := row - 1
+		right := row + 2
+
+		fullLength := len(pattern)
+
+		if row == 0 || row == fullLength-2 {
+			return row
+		}
+
+		reachedEnd := left < 0 || right >= len(pattern)
+		if reachedEnd {
+			continue
+		}
+
+		columnsAreEqual := pattern[left] == pattern[right]
+
+		for !reachedEnd && columnsAreEqual {
+			columnsAreEqual = pattern[left] == pattern[right]
+
+			left--
+			right++
+			reachedEnd = left < 0 || right >= len(pattern)
+		}
+
+		if columnsAreEqual {
+			// fmt.Println("found ", typeOfArr, row)
+			return row
+		}
+	}
+
+	return -1
+}
+
+func doWork2(pattern []string, typeOfArr string, exclude int) int {
 	for row := range pattern {
+		if row == exclude {
+			// fmt.Println("Excluding ", row)
+			continue
+		}
 		if row == len(pattern)-1 {
 			continue
 		}
@@ -91,14 +157,12 @@ func doWork(pattern []string, typeOfArr string) int {
 
 		reachedEnd := up < 0 || down >= len(pattern)
 		if reachedEnd {
-			fmt.Println("found row", row)
+			// fmt.Println("found row", row)
 			return row
 		}
 
 		isDiff1 = getDiff(pattern[up], pattern[down]) == 1
-		if isDiff1 {
-			wasDiffUsed = true
-		}
+		wasDiffUsed = false
 
 		rowsAreEqual := pattern[up] == pattern[down] || isDiff1
 
@@ -115,7 +179,7 @@ func doWork(pattern []string, typeOfArr string) int {
 		}
 
 		if rowsAreEqual {
-			fmt.Println("found ", typeOfArr, row)
+			// fmt.Println("found ", typeOfArr, row)
 			return row
 		}
 	}
