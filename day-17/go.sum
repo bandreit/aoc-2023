@@ -2,3 +2,5 @@ github.com/ernestosuarez/itertools v0.0.0-20190516153236-40a02c159e7b h1:jfqcM/m
 github.com/ernestosuarez/itertools v0.0.0-20190516153236-40a02c159e7b/go.mod h1:WzH8PFd6m6UcRNbYXLAjgjyvwE5EqBKwTYosDoUDG/Q=
 github.com/mpvl/unique v0.0.0-20150818121801-cbe035fff7de h1:D5x39vF5KCwKQaw+OC9ZPiLVHXz3UFw2+psEX+gYcto=
 github.com/mpvl/unique v0.0.0-20150818121801-cbe035fff7de/go.mod h1:kJun4WP5gFuHZgRjZUWWuH1DTxCtxbHDOIJsudS8jzY=
+github.com/teivah/advent-of-code v1.8.3 h1:bBVffIenk/dvne4PuOHjNu7bCJYopqyJatMOl3BRxsw=
+github.com/teivah/advent-of-code v1.8.3/go.mod h1:p1BrdH9bL5eXxtTxuLfUSW+jYtq9fYzKhzcpTePbpsw=
